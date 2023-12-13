@@ -8,7 +8,6 @@
 #include <string>
 #include <vector>
 
-#include "linux_parser.h"
 #include "process.h"
 #include "processor.h"
 
@@ -16,63 +15,59 @@ using std::set;
 using std::size_t;
 using std::string;
 using std::vector;
-/*You need to complete the mentioned TODOs in order to satisfy the rubric
-criteria "The student will be able to extract and display basic data about the
-system."
-
-You need to properly format the uptime. Refer to the comments mentioned in
-format. cpp for formatting the uptime.*/
 
 // Return the system's CPU
-Processor& System::Cpu() { return cpu_; }
+Processor& System::Cpu() { return _cpu; }
 
 // Return a container composed of the system's processes
 vector<Process>& System::Processes() {
-  const set<int> newPids = LinuxParser::Pids();
+  const set<int> newPids = _parser->Pids();
 
   // Remove non-existing processes
-  for (auto it = pids.begin(); it != pids.end();) {
+  for (auto it = _pids.begin(); it != _pids.end();) {
     if (newPids.find(*it) == newPids.end()) {
-      processes_.erase(std::remove(processes_.begin(), processes_.end(), *it),
-                       processes_.end());
-      it = pids.erase(it);
+      _processes.erase(std::remove(_processes.begin(), _processes.end(), *it),
+                       _processes.end());
+      it = _pids.erase(it);
     } else {
       ++it;
     }
   }
 
-  // Add new process
+  // Add new processes
   for (const auto newPid : newPids) {
-    if (pids.find(newPid) == pids.end()) {
-      pids.insert(newPid);
-      processes_.emplace_back(newPid);
+    if (_pids.find(newPid) == _pids.end()) {
+      _pids.insert(newPid);
+      _processes.emplace_back(newPid, _parser);
     }
   }
 
   // Update CpuUtilization
-  for (auto& process : processes_) {
-    process.UpdateCpuUtilization(LinuxParser::ActiveJiffies(process.Pid()),
-                                 LinuxParser::Jiffies());
+  for (auto& process : _processes) {
+    process.UpdateCpuUtilization(_parser->ActiveJiffies(process.Pid()),
+                                 _parser->Jiffies());
   }
-  std::stable_sort(processes_.begin(), processes_.end());
-  std::reverse(processes_.begin(), processes_.end());
-  return processes_;
+
+  // Sort by CPU usage (DESC)
+  std::stable_sort(_processes.begin(), _processes.end(),
+                   [](const auto& a, const auto& b) { return a > b; });
+  return _processes;
 }
 
 // Return the system's kernel identifier (string)
-std::string System::Kernel() { return LinuxParser::Kernel(); }
+std::string System::Kernel() { return _parser->Kernel(); }
 
 // Return the system's memory utilization
-float System::MemoryUtilization() { return LinuxParser::MemoryUtilization(); }
+float System::MemoryUtilization() { return _parser->MemoryUtilization(); }
 
 // Return the operating system name
-std::string System::OperatingSystem() { return LinuxParser::OperatingSystem(); }
+std::string System::OperatingSystem() { return _parser->OperatingSystem(); }
 
 // Return the number of processes actively running on the system
-int System::RunningProcesses() { return LinuxParser::RunningProcesses(); }
+int System::RunningProcesses() { return _parser->RunningProcesses(); }
 
 // Return the total number of processes on the system
-int System::TotalProcesses() { return LinuxParser::TotalProcesses(); }
+int System::TotalProcesses() { return _parser->TotalProcesses(); }
 
 // Return the number of seconds since the system started running
-long int System::UpTime() { return LinuxParser::UpTime(); }
+long int System::UpTime() { return _parser->UpTime(); }

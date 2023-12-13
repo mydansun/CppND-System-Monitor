@@ -1,6 +1,7 @@
+#include "format.h"
+
 #include <iomanip>
 #include <sstream>
-#include "format.h"
 
 using std::string;
 

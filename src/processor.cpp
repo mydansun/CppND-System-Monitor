@@ -5,14 +5,14 @@
 // Return the aggregate CPU utilization
 float Processor::Utilization() {
   if (prevActive == 0 && prevIdle == 0 && prevTotal == 0) {
-    prevActive = LinuxParser::ActiveJiffies();
-    prevIdle = LinuxParser::IdleJiffies();
+    prevActive = _parser->ActiveJiffies();
+    prevIdle = _parser->IdleJiffies();
     prevTotal = prevActive + prevIdle;
     return 0.0f;
   }
 
-  const long active = LinuxParser::ActiveJiffies();
-  const long idle = LinuxParser::IdleJiffies();
+  const long active = _parser->ActiveJiffies();
+  const long idle = _parser->IdleJiffies();
   const long total = idle + active;
 
   const long delta_total = total - prevTotal;
