@@ -233,20 +233,11 @@ std::string LinuxParser::User(int pid) {
   return username;
 }
 
-/**
- * Get the UpTime of process
- * The official tutorial of udacity prompts to use the [starttime] field here,
- * but the UI of this program uses this method to display the time the process
- * takes up the CPU, which is similar to the [TIME+] field in htop. This is a
- * bit confusing. Finally, according to the intention of the UI, here we read
- * the time the process takes up the CPU.
- * @param pid
- * @return
- */
 long LinuxParser::UpTime(int pid) {
-  std::vector<std::string> values = getProcessStat(pid);
-  if (values.empty()) {
+  const auto stat = LinuxParser::getProcessStat(pid);
+  if (stat.empty()) {
     return 0;
   }
-  return (stol(values.at(13)) + stol(values.at(14))) / sysconf(_SC_CLK_TCK);
+  return LinuxParser::UpTime() -
+         (std::stol(stat.at(21)) / sysconf(_SC_CLK_TCK));
 }
